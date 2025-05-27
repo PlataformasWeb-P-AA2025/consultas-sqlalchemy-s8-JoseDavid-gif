@@ -27,7 +27,7 @@ dep_info_bajas_calificaciones = (
 # Presentar los departamentos y el número de cursos
 print("Departamentos con notas de entregas menores o iguales a 0.3 y su número de cursos:")
 
-# Itera sobre los resultados
+# Itera sobre los resultados,
 for nombre_dep, num_cursos in dep_info_bajas_calificaciones:
     print(f"Departamento: {nombre_dep}, Número de cursos: {num_cursos}")
 
