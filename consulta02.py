@@ -2,27 +2,29 @@
 # En función de los departamentos, presentar el nombre del departamento 
 # y el número de cursos que tiene cada departamento
 
-
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import func
-from clases import engine, Departamento, Instructor, Curso, Estudiante, Inscripcion, Tarea, Entrega
+from clases import engine, Departamento, Instructor, Curso, Estudiante, Inscripcion, Tarea, Entrega 
 
+# Crear una sesión
 Session = sessionmaker(bind=engine)
 session = Session()
 
-departamentos_baja_calificacion = (
-    session.query(Departamento.nombre, func.count(Curso.id).label('numero_cursos')) # Seleccionamos el nombre del departamento y contamos sus cursos.
-    .join(Curso, Departamento.id == Curso.departamento_id) # Unimos Departamentos con Cursos.
-    .join(Tarea, Curso.id == Tarea.curso_id)
-    .join(Entrega, Tarea.id == Entrega.tarea_id)
-    .filter(Entrega.calificacion <= 0.3) # Filtramos las entregas con calificaciones de 0.3 o menos.
-    .group_by(Departamento.nombre) # Agrupamos por departamento para obtener un conteo por cada uno.
-    .all() # Ejecutamos la consulta y obtenemos los resultados.
+# Consulta para obtener solo los nombres de los departamentos con notas de entregas bajas
+dep_notas = (
+    session.query(Departamento.nombre) # Seleccionamos el nombre del departamento
+    .join(Departamento.cursos) # Unimos Departamento con Curso a través de la relación
+    .join(Curso.tareas) # Unimos Curso con Tarea a través de la relación
+    .join(Tarea.entregas) # Unimos Tarea con Entrega a través de la relación
+    .filter(Entrega.calificacion <= 0.3) # Filtramos por entregas con calificaciones de 0.3 o menos
+    .distinct() # Aseguramos que cada nombre de departamento aparezca solo una vez
+    .all() # Ejecutamos la consulta
 )
 
-print("Departamentos notas entregas ")
+# Presentar los departamentos
+print("Departamentos que tienen notas menores o iguales a 0.3:")
 
-for nombre_departamento, numero_cursos in departamentos_baja_calificacion:
-    print(f"Departamento: {nombre_departamento}, Número de cursos: {numero_cursos}")
+for nombre_dep, in dep_notas: # Iteramos sobre los resultados
+    print(f"Departamento: {nombre_dep}")
 
-session.close()
+session.close() # Cerramos la sesión
